@@ -3,14 +3,13 @@ import Header from './Header'
 import {validateEmailAndPasswordInputs} from "../utils/validators"
 import { createUserWithEmailAndPassword,signInWithEmailAndPassword ,updateProfile} from "firebase/auth";
 import {auth} from "../utils/firebaseConfig"
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addUser } from '../utils/store/userSlice';
+import { USER_AVATAR } from '../utils/constants';
 const Login = () => {
 
   const [isSignIn, setIsSignIn] = useState(true);
   const [inputError,setInputError] = useState(null)
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const email = useRef(null);
   const password = useRef(null);
@@ -21,24 +20,19 @@ const Login = () => {
 
    const handleButtonClick = ()=>{
     const fieldsErrors = validateEmailAndPasswordInputs(email.current.value, password.current.value)
-    console.log(fieldsErrors)
     setInputError(fieldsErrors)
 
     if(isSignIn){
       signInWithEmailAndPassword(auth, email.current.value, password.current.value)
         .then((userCredential) => {
           // Signed in 
-          const user = userCredential.user;
-          console.log("user signed in successfully")
-          console.log(user)
+          // const user = userCredential.user;
           const {uid,email,displayName,photoURL} = auth.currentUser;
           dispatch(addUser({uid:uid,email:email,displayName:displayName,photoURL:photoURL}));
-          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          console.log(errorCode + " -> " + errorMessage)
           setInputError({errMsg:errorCode + ":" + errorMessage})
         });
       }
@@ -46,16 +40,14 @@ const Login = () => {
       createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
         .then((userCredential) => {
           // Signed Up
-          const user = userCredential.user;
-          console.log(user)
+          // const user = userCredential.user;
           updateProfile(auth.currentUser, {
-            displayName: name.current.value, photoURL: "https://media.licdn.com/dms/image/D5635AQGdtYWnXhKARQ/profile-framedphoto-shrink_100_100/0/1689063791800?e=1695121200&v=beta&t=Z3mFmfiBctMdLK48BV8xFSbtCJhtPU-EfbgmXqLiLTs"
+            displayName: name.current.value, photoURL: USER_AVATAR
           }).then(() => {
             // Profile updated!
             // dispatch action to update the user store
             const {uid,email,displayName,photoURL} = auth.currentUser;
             dispatch(addUser({uid:uid,email:email,displayName:displayName,photoURL:photoURL}));
-            navigate("/browse");
           }).catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
@@ -65,7 +57,6 @@ const Login = () => {
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          console.log(errorCode + " -> " + errorMessage)
           setInputError({errMsg:errorCode + ":" + errorMessage})
         });
       }
